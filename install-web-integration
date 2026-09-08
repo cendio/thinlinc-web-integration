@@ -1,0 +1,133 @@
+#!/bin/bash
+# -*- mode: shell-script; coding: utf-8 -*-
+#
+# Copyright 2018 Karl Mikaelsson <derfian@cendio.se> for Cendio AB.
+# For more information, see http://www.cendio.com
+#
+# ------------------------------------------------------------------------
+# Install Apache configuration files for ThinLinc Web Integration
+# ------------------------------------------------------------------------
+
+# Environment variables:
+#
+#  APACHE_CONF_DIR:
+#    The directory where additional Apache HTTPD configuration files
+#    are to be installed. If unset, the script tries to find the
+#    directory by checking known locations.
+#
+#  APACHE_CONF_NAME:
+#    The name of the installed configuration file. If unset, the
+#    default value of "thinlinc.conf" is used.
+#
+
+APACHE_CONF_NAME="${APACHE_CONF_NAME:-thinlinc.conf}"
+
+function find_apache_config_directory() {
+    # Try to find the apache httpd conf.d directory by looking at
+    # known places.  If the function finds anything, it sets
+    # APACHE_CONF_DIR to the found directory and returns.
+    #
+    # If no configuration directories were found, the function will
+    # cause the shell script to exit with an error message.
+
+    for candidate in /etc/httpd/conf.d /etc/apache2/conf-available /etc/apache2/conf.d /etc/apache/conf.d; do
+        test -d "${candidate}" || continue
+        APACHE_CONF_DIR="${candidate}"
+        echo "Found Apache configuration directory: ${APACHE_CONF_DIR}"
+        return
+    done
+
+    cat >&2 <<EOF
+ERROR: Could not find Apache httpd configuration file directory.
+
+Set the environment variable APACHE_CONF_DIR to the location of your
+httpd conf.d directory and re-run this script. Example:
+
+  env APACHE_CONF_DIR=/usr/local/etc/httpd/conf.d $0
+
+EOF
+    exit 1
+}
+
+function verify_apache_conf_dir_is_a_directory() {
+    # Ensure that APACHE_CONF_DIR is a directory, or exit with an
+    # error message.
+
+    test -d "${APACHE_CONF_DIR}" || {
+        cat >&2 <<EOF
+ERROR: ${APACHE_CONF_DIR} is not a directory.
+
+Set the environment variable APACHE_CONF_DIR to the location of your
+httpd conf.d directory and re-run this script. Example:
+
+  env APACHE_CONF_DIR=/usr/local/etc/httpd/conf.d $0
+
+EOF
+        exit 1
+    }
+}
+
+function check_for_existing_config() {
+    # Exit with an error message if an existing thinlinc.conf already
+    # exists.
+
+    CONFIG_FILE="${APACHE_CONF_DIR}/${APACHE_CONF_NAME}"
+    if [ -a "${CONFIG_FILE}" ]; then
+        cat >&2 <<EOF
+ERROR: ${CONFIG_FILE} already exists!
+
+To upgrade an existing installation, move ${CONFIG_FILE}
+out of the configuration directory, run this script again, and finally
+migrate any local modifications from the old to the new configuration
+file.
+
+If you wish to install the configuration file to a different
+file name, set the environment variable APACHE_CONF_NAME to the
+desired file name and re-run this script. Example:
+
+  env APACHE_CONF_NAME=thinlinc-portal-integration.conf $0
+
+EOF
+        exit 1
+    fi
+}
+
+function install_httpd_config() {
+    # Install the standard configuration to the given location, and
+    # enable it on Debian-like systems. If these operations fail,
+    # print an error message to the user and quit.
+
+    cp "/opt/thinlinc/share/web_integration/thinlinc.conf" "${CONFIG_FILE}" || {
+        cat >&2 <<EOF
+ERROR: Failed to copy /opt/thinlinc/share/web_integration/thinlinc.conf to ${CONFIG_FILE}
+
+EOF
+        exit 1
+    }
+
+    if [[ "${APACHE_CONF_DIR}" == "/etc/apache2/conf-available" ]]; then
+        a2enconf "${APACHE_CONF_NAME%.conf}" || {
+            cat >&2 <<EOF
+ERROR: Failed to activate installed configuration with a2enconf.
+
+EOF
+            exit 1
+        }
+    fi
+
+    echo "Configuration file ${CONFIG_FILE} installed successfully."
+}
+
+# ----
+
+if [ -z "${APACHE_CONF_DIR}" ]; then
+    find_apache_config_directory
+fi
+
+verify_apache_conf_dir_is_a_directory
+
+check_for_existing_config
+
+install_httpd_config
+
+exit 0

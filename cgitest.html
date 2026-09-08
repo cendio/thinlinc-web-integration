@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<!--
+Copyright 2002-2014 Cendio AB.
+For more information, see http://www.cendio.com
+-->
+<head>
+    <title>ThinLinc tlclient.cgi test page</title>
+</head>
+<body>
+
+<h2>ThinLinc tlclient.cgi test page</h2>
+This page allows you to test the different parameters accepted by
+tlclient.cgi. The parameter names are displayed at the end of each
+line. 
+<br>
+Note: You must access this page over HTTPS, since
+tlclient.cgi does not accept any parameters over HTTP. 
+
+<p>
+
+<form method="post" action="tlclient.cgi" name="loginform">
+
+Server name: <input type="text" name="server_name" value="someserver" size=20> (server_name)
+<br>
+
+Username: <input type="text" name="username" value="someuser" size=20> (username)
+<br>
+
+Password: <input type="password" name="password" value="mysecret" size=20> (password)
+<br>
+
+Hexpassword: <input type="text" name="hexpassword" value="" size=20> (hexpassword) Note: overrides password
+<br>
+
+Post-launch redirect URL: <input type="text" name="redirto" size=60> (redirto)
+<br>
+
+Execute login, instead of showing login form:
+<input type=radio name="loginsubmit" value="1" checked>Enabled
+<input type=radio name="loginsubmit" value="0">Disabled (loginsubmit)
+<br>
+
+Instruct native client to login automatically:
+<input type=radio name="autologin" value="1" checked>Enabled
+<input type=radio name="autologin" value="0">Disabled (autologin)
+<br>
+
+Start the session with the specified program:
+<input type=radio name="start_program_enabled" value="1">Enabled
+<input type=radio name="start_program_enabled" value="0" checked>Disabled (start_program_enabled)
+<br>
+
+Start program command: <input type="text" name="start_program_command" value="firefox" size=20> (start_program_command)
+<br>
+
+Display URL with these parameters, instead of login:
+<input type=radio name="displayurl" value="1">Enabled
+<input type=radio name="displayurl" value="0" checked>Disabled (displayurl) Note: including passwords in URLs is not safe
+<br>
+<br>
+<input type="submit" name="cgitest_submit" value="Submit">
+
+</form>
+
+
+<h2>Sample Portal Icon Using Form Post</h2>
+<form method="post" action="tlclient.cgi" name="iconform">
+<input type="hidden" name="autologin" value="0">
+<input type="hidden" name="redirto" value="/thinlinc/cgitest.html">
+<input type="hidden" name="loginsubmit" value="1">
+<button name="cgitest_submit" type="submit">
+<img src="/thinlinc/thinlinc_24.png" alt="ThinLinc"></button>
+</form>
+
+
+<h2>Sample Portal Icon Using Form Post, with Single Sign-On</h2>
+<form method="post" action="tlclient.cgi" name="iconform">
+<input type="hidden" name="username" value="myuser">
+<input type="hidden" name="password" value="mysecret">
+<input type="hidden" name="autologin" value="1">
+<input type="hidden" name="redirto" value="/thinlinc/cgitest.html">
+<input type="hidden" name="loginsubmit" value="1">
+<button name="cgitest_submit" type="submit">
+<img src="/thinlinc/thinlinc_24.png" alt="ThinLinc"></button>
+</form>
+
+
+<h2>Sample Portal Icon Using URL Link</h2>
+<a href="/thinlinc/tlclient.cgi?autologin=0&amp;redirto=/thinlinc/cgitest.html&amp;loginsubmit=1">
+<img src="/thinlinc/thinlinc_24.png" alt="ThinLinc">
+</a>
+
+
+</body> </html>
